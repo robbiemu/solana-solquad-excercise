@@ -2,9 +2,6 @@
 seeds = false
 skip-lint = false
 
-[programs.localnet]
-solquad = "7cHgqx9oG6SKj2AgXcpX2V8HBUuJku2iT2yNbH7vNppm"
-
 [programs.devnet]
 solquad = "7cHgqx9oG6SKj2AgXcpX2V8HBUuJku2iT2yNbH7vNppm"
 
@@ -12,7 +9,7 @@ solquad = "7cHgqx9oG6SKj2AgXcpX2V8HBUuJku2iT2yNbH7vNppm"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
