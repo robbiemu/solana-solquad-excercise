@@ -1,17 +1,39 @@
+import * as fs from "node:fs";
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import idl from "../target/idl/solquad.json";
-import {Solquad} from "../target/idl/solquad";
-
 import { utf8 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 import {BN} from "bn.js";
 
+import idl from "../target/idl/solquad.json";
+import {Solquad} from "../target/idl/solquad";
+
+const keypairFilePath = 'keypairs.json';
+
+// Load keypairs from the file
+let keypairs: { [key: string]: any } = {};
+if (fs.existsSync(keypairFilePath)) {
+  keypairs = JSON.parse(fs.readFileSync(keypairFilePath, 'utf-8'));
+}
+
+async function fromKeypair(who: string) {
+  // generate and save if the keypair for 'who' exists
+  if (!(who in keypairs)) {
+    const newKeypair = anchor.web3.Keypair.generate();
+
+    keypairs[who] = newKeypair;
+    fs.writeFileSync(keypairFilePath, JSON.stringify(keypairs, null, 2), 'utf-8');
+  }
+
+  return anchor.web3.Keypair.fromSecretKey(keypairs[who].secretKey);
+}
+
 describe("solquad", async () => {
   const connection = new anchor.web3.Connection(anchor.web3.clusterApiUrl("devnet"), 'confirmed');
-  const programId = new anchor.web3.PublicKey("3fowu869PY6frqrYPdhtCzsm7j1jgjpr47HyuyMP9xUH");
+  const programId = new anchor.web3.PublicKey("4eRBGPK8M2ENwjX3UrBJ6HdWVgRi6t8Z6Eu83YFBAUdw");
 
-  const admin = anchor.web3.Keypair.generate();
-  const admin2 = anchor.web3.Keypair.generate();
+  const admin = await fromKeypair('admin');
+  const admin2 = await fromKeypair('admin2');
+
   const wallet = new anchor.Wallet(admin);
 
   const provider = new anchor.AnchorProvider(connection, wallet, {});
@@ -157,7 +179,7 @@ describe("solquad", async () => {
 
 
 async function airdrop(user, provider) {
-  const AIRDROP_AMOUNT = anchor.web3.LAMPORTS_PER_SOL; // 5 SOL
+  const AIRDROP_AMOUNT = new BN(1) * anchor.web3.LAMPORTS_PER_SOL; // 5 SOL
 
   // airdrop to user
   const airdropSignature = await provider.connection.requestAirdrop(
